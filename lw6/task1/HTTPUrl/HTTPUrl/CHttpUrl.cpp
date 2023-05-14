@@ -2,6 +2,7 @@
 #include <regex>
 
 #include "CHttpUrl.h"
+#include "CUrlParsingError.h"
 
 namespace
 {
@@ -22,11 +23,6 @@ namespace
 	const std::map<Protocol, unsigned short> PROTOCOL_STANDART_PORTS = {
 		{Protocol::HTTP, 80},
 		{Protocol::HTTPS, 443},
-	};
-
-	const std::map<Protocol, std::string> PROTOCOL_NAMES = {
-		{Protocol::HTTP, "http"},
-		{Protocol::HTTPS, "https"},
 	};
 
 	const std::map<std::string, Protocol> PROTOCOL_TYPES = {
@@ -74,7 +70,7 @@ namespace
 
 			if (port > MAX_PORT)
 			{
-				throw new std::exception("");
+				throw CUrlParsingError("invalid port");
 			}
 
 			return static_cast<unsigned short>(port);
@@ -95,7 +91,7 @@ namespace
 	{
 		if (!std::regex_match(domain, REGEX_FOR_DOMAIN))
 		{
-			throw std::exception("");
+			throw CUrlParsingError("invalid domain");
 		}
 	}
 
@@ -103,7 +99,7 @@ namespace
 	{
 		if (!std::regex_match(document, REGEX_FOR_DOCUMENT))
 		{
-			throw std::exception("");
+			throw CUrlParsingError("invalid document");
 		}
 	}
 }
@@ -112,7 +108,7 @@ CHttpUrl::CHttpUrl(std::string const& url)
 {
 	if (!std::regex_match(url, REGEX_FOR_URL))
 	{
-		throw std::exception("invalid url");
+		throw CUrlParsingError("invalid url");
 	}
 
 	size_t pos = 0;
@@ -157,7 +153,16 @@ std::string CHttpUrl::GetURL()const
 		? ""
 		: PROTOCOL_SEPARATOR + std::to_string(m_port);
 
-	return PROTOCOL_NAMES.at(m_protocol) + PROTOCOL_SEPARATOR + PATH_SEPARATOR + PATH_SEPARATOR
+	std::string protocolName;
+	for (auto const& [key, val] : PROTOCOL_TYPES)
+	{
+		if (m_protocol == val)
+		{
+			protocolName = key;
+		}
+	}
+
+	return protocolName + PROTOCOL_SEPARATOR + PATH_SEPARATOR + PATH_SEPARATOR
 		+ m_domain + port + m_document;
 }
 

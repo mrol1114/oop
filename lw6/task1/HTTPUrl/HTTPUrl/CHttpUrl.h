@@ -5,7 +5,7 @@
 enum class Protocol
 {
 	HTTP,
-	HTTPS
+	HTTPS,
 };
 
 class CHttpUrl
@@ -25,22 +25,9 @@ public:
 		unsigned short port);
 
 	std::string GetURL()const;
-
-	// возвращает доменное имя
 	std::string GetDomain()const;
-
-	/*
-		Возвращает имя документа. Примеры:
-			/
-			/index.html
-			/images/photo.jpg
-	*/
 	std::string GetDocument()const;
-
-	// возвращает тип протокола
 	Protocol GetProtocol()const;
-
-	// возвращает номер порта
 	unsigned short GetPort()const;
 
 private:
