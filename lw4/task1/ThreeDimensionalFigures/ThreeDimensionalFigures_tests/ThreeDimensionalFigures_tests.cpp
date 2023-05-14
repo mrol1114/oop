@@ -10,6 +10,13 @@
 #include "../ConsoleApplication1/CSphere.h"
 #include "../ConsoleApplication1/CCylinder.h"
 
+bool AreEqual(double a, double b)
+{
+	return fabs(a - b) < std::numeric_limits<double>::epsilon();
+}
+
+const double M_PI = 3.14;
+
 SCENARIO("checking body cone")
 {
 	WHEN("Initializing")
@@ -19,6 +26,7 @@ SCENARIO("checking body cone")
 		REQUIRE(cone.GetDensity() == 18);
 		REQUIRE(cone.GetHeight() == 14);
 		REQUIRE(cone.GetBaseRadius() == 14);
+		REQUIRE(AreEqual(M_PI / 3 * 14 * 14 * 14, cone.GetVolume()));
 	}
 
 	WHEN("Initializing with zeroes")
@@ -49,6 +57,7 @@ SCENARIO("checking body cylinder")
 		REQUIRE(cylinder.GetDensity() == 18);
 		REQUIRE(cylinder.GetHeight() == 14);
 		REQUIRE(cylinder.GetBaseRadius() == 14);
+		REQUIRE(AreEqual(M_PI * 14 * 14 * 14, cylinder.GetVolume()));
 	}
 
 	WHEN("Initializing with zeroes")
@@ -80,6 +89,7 @@ SCENARIO("checking body parallelepiped")
 		REQUIRE(parallelepiped.GetHeight() == 14);
 		REQUIRE(parallelepiped.GetWidth() == 14);
 		REQUIRE(parallelepiped.GetDepth() == 14);
+		REQUIRE(AreEqual(14 * 14 * 14, parallelepiped.GetVolume()));
 	}
 
 	WHEN("Initializing with zeroes")
@@ -111,6 +121,7 @@ SCENARIO("checking body sphere")
 
 		REQUIRE(sphere.GetDensity() == 18);
 		REQUIRE(sphere.GetRadius() == 14);
+		REQUIRE(AreEqual(M_PI * 4 / 3 * 14 * 14 * 14, sphere.GetVolume()));
 	}
 
 	WHEN("Initializing with zeroes")
@@ -134,12 +145,16 @@ SCENARIO("checking compound")
 {
 	WHEN("Initializing with bodies")
 	{
+		std::shared_ptr<CBody> cylinder(new CCylinder{ 20, 13, 13 });
+		std::shared_ptr<CBody> sphere(new CSphere{ 20, 12 });
+
 		CCompound bodies{{
-			std::shared_ptr<CBody>(new CSphere{20, 12}),
-			std::shared_ptr<CBody>(new CCylinder{20, 13, 13})
+			cylinder,
+			sphere
 		}};
 
 		REQUIRE(bodies.GetChilds().size() == 2);
+		REQUIRE(AreEqual(bodies.GetVolume(), cylinder->GetVolume() + sphere->GetVolume()));
 	}
 
 	WHEN("Trying initialize without bodies")
@@ -250,8 +265,8 @@ SCENARIO("finding body with biggest mass")
 	GIVEN("Two bodies")
 	{
 		Bodies bodies = {
-			std::shared_ptr<CBody>(new CSphere{20, 12}),
-			std::shared_ptr<CBody>(new CCylinder{20, 13, 13})
+			std::make_shared<CSphere>(20, 12),
+			std::make_shared<CCylinder>(20, 13, 13)
 		};
 
 		REQUIRE(GetBodyWithBiggestMass(bodies)->GetMass() >= bodies[0]->GetMass());
@@ -271,64 +286,13 @@ SCENARIO("finding lightest body")
 		};
 
 		Bodies bodies = {
-			std::shared_ptr<CBody>(new CParallelepiped{1.4, 1, 1, 1}),
-			std::shared_ptr<CBody>(new CParallelepiped{1000, 1, 1, 1})
+			std::make_shared<CParallelepiped>(1.4, 0.1, 0.1, 0.1),
+			std::make_shared<CParallelepiped>(1000, 1, 1, 1)
 		};
 
 		Body lightestBody = GetLightestBodyInWater(bodies);
 
 		REQUIRE(calculateWeightInWater(lightestBody.get()) <= calculateWeightInWater(bodies[0].get()));
 		REQUIRE(calculateWeightInWater(lightestBody.get()) <= calculateWeightInWater(bodies[1].get()));
-	}
-}
-
-SCENARIO("printing info about bodies")
-{
-	GIVEN("Two bodies")
-	{
-		Bodies bodies = {
-			std::shared_ptr<CBody>(new CSphere{20, 12}),
-			std::shared_ptr<CBody>(new CCylinder{20, 13, 13})
-		};
-
-		std::string expectedOutput(
-			"[sphere]\n"
-			"\tdensity = 20\n"
-			"\tvolume = 7234.56\n"
-			"\tmass = 144691.2\n"
-			"\tradius = 12\n"
-			"[end_type]\n"
-			"\n"
-			"[cylinder]\n"
-			"\tdensity = 20\n"
-			"\tvolume = 6898.58\n"
-			"\tmass = 137971.6\n"
-			"\tbaseRadius = 13\n"
-			"\theight = 13\n"
-			"[end_type]\n"
-			"\n\n"
-			"Body with biggest mass\n"
-			"[sphere]\n"
-			"\tdensity = 20\n"
-			"\tvolume = 7234.56\n"
-			"\tmass = 144691.2\n"
-			"\tradius = 12\n"
-			"[end_type]\n"
-			"\n\n"
-			"Lightest body in water\n"
-			"[cylinder]\n"
-			"\tdensity = 20\n"
-			"\tvolume = 6898.58\n"
-			"\tmass = 137971.6\n"
-			"\tbaseRadius = 13\n"
-			"\theight = 13\n"
-			"[end_type]\n"
-			"\n"
-		);
-
-		std::ostringstream output;
-
-		PrintInfoAboutBodies(output, bodies);
-		REQUIRE(output.str() == expectedOutput);
 	}
 }

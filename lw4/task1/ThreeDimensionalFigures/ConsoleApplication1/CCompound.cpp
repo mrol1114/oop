@@ -17,7 +17,9 @@ CCompound::~CCompound()
 
 }
 
-bool CCompound::IsContainsSameBody(std::shared_ptr<CBody> addingBody, const CCompound* mainBody) const
+// сменить название, правильно назвать на английском
+// сделать по максимальному количеству уровней вложенности
+bool CCompound::IsContainsSameBody(std::shared_ptr<CBody> addingBody, const CCompound* mainBody) const //
 {
 	if (mainBody == addingBody.get())
 	{
@@ -57,6 +59,7 @@ bool CCompound::AddChildBody(std::shared_ptr<CBody> body)
 	return true;
 }
 
+// children
 std::vector<std::shared_ptr<CBody>> CCompound::GetChilds() const
 {
 	return m_childs;
