@@ -265,7 +265,11 @@ void ReadCBodiesInVector(std::istream& input, Bodies& bodies)
 
 Body GetBodyWithBiggestMass(const Bodies& bodies)
 {
-	return nullptr;
+	if (bodies.size() == 0)
+	{
+		return nullptr;
+	}
+	
 	auto compare = [](const Body& firstElm, const Body& secondElm)
 	{
 		return firstElm->GetMass() < secondElm->GetMass();
@@ -276,6 +280,11 @@ Body GetBodyWithBiggestMass(const Bodies& bodies)
 
 Body GetLightestBodyInWater(const Bodies& bodies)
 {
+	if (bodies.size() == 0)
+	{
+		return nullptr;
+	}
+
 	auto compare = [](const Body& firstElm, const Body& secondElm)
 	{
 		return CalculateWeightInWater(firstElm) < CalculateWeightInWater(secondElm);

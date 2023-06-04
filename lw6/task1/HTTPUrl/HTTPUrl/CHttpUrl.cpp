@@ -11,12 +11,13 @@ namespace
 		R"((\/([a-zA-Z0-9]+\/)*([a-zA-Z0-9]+)?)?(\?(([a-zA-Z0-9]+=[a-zA-Z0-9]*)+&?)*)?$)");
 	const std::regex REGEX_FOR_DOMAIN(R"((([^\/:.]+)?:([^\/:.]+)?@)?([a-zA-Z]+\.))"
 		R"(?([a-zA-Z0-9]+)(\.[\w]{2,})?$)");
-	const std::regex REGEX_FOR_DOCUMENT(R"((\/([a-zA-Z0-9]+\/)*([a-zA-Z0-9]+)?))"
-		R"(?(\?(([a-zA-Z0-9]+=[a-zA-Z0-9]*)+&?)*)?)$)");
+	const std::regex REGEX_FOR_DOCUMENT(R"((\/?([a-zA-Z0-9]+\/)*([a-zA-Z0-9]+)?)?)"
+		R"((\?(([a-zA-Z0-9]+=[a-zA-Z0-9]*)+&?)*)?$)");
 
 	const char PATH_SEPARATOR = '/';
 	const char PROTOCOL_SEPARATOR = ':';
 	const char AUTHORIZATION_SEPARATOR = '@';
+	const char LENGTH_OF_PROTOCOL_SEPARATOR_SUBSTRING = 3;
 
 	const int MAX_PORT = 65535;
 
@@ -30,61 +31,12 @@ namespace
 		{"https", Protocol::HTTPS},
 	};
 
-	Protocol ParseProtocol(const std::string& url, size_t& pos)
+	void ValidatePort(int port)
 	{
-		size_t endOfProtocolPos = url.find(PROTOCOL_SEPARATOR);
-		pos = endOfProtocolPos + 2;
-
-		return PROTOCOL_TYPES.at(url.substr(0, endOfProtocolPos));
-	}
-
-	std::string ParseDomain(const std::string& url, size_t& pos)
-	{
-		size_t prevPos = pos;
-
-		size_t endOfAuthorizationPos = url.find(AUTHORIZATION_SEPARATOR, prevPos);
-		size_t startOfPortPos = url.find(PROTOCOL_SEPARATOR, endOfAuthorizationPos + 1);
-		pos = url.find(PATH_SEPARATOR, prevPos);
-
-		if (startOfPortPos != std::string::npos)
+		if (port > MAX_PORT || port < 0)
 		{
-			return url.substr(startOfPortPos, startOfPortPos - prevPos);
+			throw CUrlParsingError("invalid port");
 		}
-		
-		if (pos == std::string::npos)
-		{
-			return url.substr(prevPos);
-		}
-
-		return url.substr(prevPos, pos - prevPos);
-	}
-
-	unsigned short ParsePort(const std::string& url, size_t& pos, Protocol protocol)
-	{
-		size_t startOfPortPos = url.find(PROTOCOL_SEPARATOR, pos);
-		pos = url.find(PATH_SEPARATOR);
-
-		if (startOfPortPos != std::string::npos)
-		{
-			int port = stoi(url.substr(startOfPortPos, pos - startOfPortPos));
-
-			if (port > MAX_PORT)
-			{
-				throw CUrlParsingError("invalid port");
-			}
-
-			return static_cast<unsigned short>(port);
-		}
-		else
-		{
-			return PROTOCOL_STANDART_PORTS.at(protocol);
-		}
-	}
-	
-	std::string ParseDocument(const std::string& url, size_t& pos)
-	{
-
-		return pos != std::string::npos ? url.substr(pos) : "";
 	}
 
 	void ValidateDomain(const std::string& domain)
@@ -102,9 +54,63 @@ namespace
 			throw CUrlParsingError("invalid document");
 		}
 	}
+
+	Protocol ParseProtocol(const std::string& url, size_t& pos)
+	{
+		size_t endOfProtocolPos = url.find(PROTOCOL_SEPARATOR);
+		pos = endOfProtocolPos + LENGTH_OF_PROTOCOL_SEPARATOR_SUBSTRING;
+
+		return PROTOCOL_TYPES.at(url.substr(0, endOfProtocolPos));
+	}
+
+	std::string ParseDomain(const std::string& url, size_t& pos)
+	{
+		size_t prevPos = pos;
+
+		size_t endOfAuthorizationPos = url.find(AUTHORIZATION_SEPARATOR, prevPos);
+		size_t startOfPortPos = url.find(PROTOCOL_SEPARATOR,
+			endOfAuthorizationPos != std::string::npos ? endOfAuthorizationPos + 1 : pos);
+		
+		if (startOfPortPos != std::string::npos)
+		{
+			pos = startOfPortPos;
+			return url.substr(prevPos, startOfPortPos - prevPos);
+		}
+		
+		pos = url.find(PATH_SEPARATOR, prevPos);
+		if (pos == std::string::npos)
+		{
+			return url.substr(prevPos);
+		}
+
+		return url.substr(prevPos, pos - prevPos);
+	}
+
+	unsigned short ParsePort(const std::string& url, size_t& pos, Protocol protocol)
+	{
+		size_t startOfPortPos = url.find(PROTOCOL_SEPARATOR, pos);
+		pos = url.find(PATH_SEPARATOR, pos);
+
+		if (startOfPortPos != std::string::npos)
+		{
+			int port = stoi(url.substr(startOfPortPos + 1, pos - startOfPortPos));
+			ValidatePort(port);
+
+			return static_cast<unsigned short>(port);
+		}
+		else
+		{
+			return PROTOCOL_STANDART_PORTS.at(protocol);
+		}
+	}
+	
+	std::string ParseDocument(const std::string& url, size_t& pos)
+	{
+		return pos != std::string::npos ? url.substr(pos + 1) : "";
+	}
 }
 
-CHttpUrl::CHttpUrl(std::string const& url)
+CHttpUrl::CHttpUrl(const std::string &url)
 {
 	if (!std::regex_match(url, REGEX_FOR_URL))
 	{
@@ -112,21 +118,25 @@ CHttpUrl::CHttpUrl(std::string const& url)
 	}
 
 	size_t pos = 0;
-	m_protocol = ParseProtocol(url, pos);
-	m_domain = ParseDomain(url, pos);
-	m_domain = ParsePort(url, pos, m_protocol);
-	m_document = ParseDocument(url, pos);
+	Protocol protocol = ParseProtocol(url, pos);
+	std::string domain = ParseDomain(url, pos);
+	unsigned int port = ParsePort(url, pos, protocol);
+	std::string document = ParseDocument(url, pos);
+
+	m_protocol = protocol;
+	swap(m_domain, domain);
+	m_port = port;
+	swap(m_document, document);
 }
 
 CHttpUrl::CHttpUrl(
 	std::string const& domain,
 	std::string const& document,
-	Protocol protocol = Protocol::HTTP)
+	Protocol protocol)
 {
 	ValidateDomain(domain);
 	ValidateDocument(document);
 
-	size_t pos = 0;
 	m_protocol = protocol;
 	m_domain = domain;
 	m_port = PROTOCOL_STANDART_PORTS.at(protocol);
@@ -136,17 +146,18 @@ CHttpUrl::CHttpUrl(
 CHttpUrl::CHttpUrl(
 	std::string const& domain,
 	std::string const& document,
-	Protocol protocol,
-	unsigned short port)
+	unsigned short port,
+	Protocol protocol)
 {
 	ValidateDomain(domain);
 	ValidateDocument(document);
 
 	m_protocol = protocol;
 	m_domain = domain;
-	m_domain = port;
+	m_port = port;
 	m_document = document;
 }
+
 std::string CHttpUrl::GetURL()const
 {
 	std::string port = PROTOCOL_STANDART_PORTS.at(m_protocol) == m_port

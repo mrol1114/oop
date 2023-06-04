@@ -134,6 +134,7 @@
     <ClCompile Include="CCylinder.cpp" />
     <ClCompile Include="CBodyUtils.cpp" />
     <ClCompile Include="CParallelepiped.cpp" />
+    <ClCompile Include="CSolidBody.cpp" />
     <ClCompile Include="CSphere.cpp" />
     <ClCompile Include="ThreeDimensionalFigures.cpp" />
   </ItemGroup>
@@ -144,6 +145,7 @@
     <ClInclude Include="CCylinder.h" />
     <ClInclude Include="CBodyUtils.h" />
     <ClInclude Include="CParallelepiped.h" />
+    <ClInclude Include="CSolidBody.h" />
     <ClInclude Include="CSphere.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -1,26 +1,37 @@
-#include <string>
 #include <iostream>
 
 #include "CommandsController.h"
 
 int main()
 {
-	std::string url;
-	CommandsController controller;
+	std::string inputString;
+	CommandsController controller(std::cin, std::cout);
+	Command command = Command::Start;
 
-	while (controller.ReadUrl(std::cin, std::cout, url))
+	while (command != Command::Exit)
 	{
+		std::cout << "Enter command: ";
+		std::cin >> inputString;
+
 		try
 		{
-			CHttpUrl urlObject(url);
-			controller.PrintInfoAboutUrl(std::cout, urlObject);
-
-			std::cout << std::endl << std::endl;
+			command = STRING_TO_COMMAND.at(inputString);
 		}
-		catch(std::exception &ex)
+		catch (const std::exception &ex)
 		{
-			std::cout << "Could not create url: " << std::endl
-				<< ex.what() << std::endl;
+			std::cout << "Unexisting command" << std::endl << std::endl;
+			continue;
 		}
+
+		try
+		{
+			controller.ExecuteCommand(command);
+		}
+		catch (const std::exception& ex)
+		{
+			std::cout << ex.what() << std::endl << std::endl;
+		}
+
+		std::cout << std::endl << std::endl;
 	}
 }
