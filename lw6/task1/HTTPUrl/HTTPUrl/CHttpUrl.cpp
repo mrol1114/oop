@@ -9,8 +9,8 @@ namespace
 	const std::regex REGEX_FOR_URL(R"(https?:\/\/)"
 		R"((([^\/:.]+)?:([^\/:.]+)?@)?([a-zA-Z]+\.)?([a-zA-Z0-9]+)(\.[\w]{2,})?(:[\d]*)?)"
 		R"((\/([a-zA-Z0-9]+\/)*([a-zA-Z0-9]+)?)?(\?(([a-zA-Z0-9]+=[a-zA-Z0-9]*)+&?)*)?$)");
-	const std::regex REGEX_FOR_DOMAIN(R"((([^\/:.]+)?:([^\/:.]+)?@)?([a-zA-Z]+\.))"
-		R"(?([a-zA-Z0-9]+)(\.[\w]{2,})?$)");
+	const std::regex REGEX_FOR_DOMAIN(R"(((([^\/:.]+)?:([^\/:.]+)?@)?([a-zA-Z]+\.))"
+		R"(?([a-zA-Z0-9]+)(\.[\w]{2,})?)|(([\d]{1,3}.){3}[\d]{1,3})$)");
 	const std::regex REGEX_FOR_DOCUMENT(R"((\/?([a-zA-Z0-9]+\/)*([a-zA-Z0-9]+)?)?)"
 		R"((\?(([a-zA-Z0-9]+=[a-zA-Z0-9]*)+&?)*)?$)");
 
