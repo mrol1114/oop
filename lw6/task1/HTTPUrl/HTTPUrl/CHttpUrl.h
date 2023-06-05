@@ -11,17 +11,17 @@ enum class Protocol
 class CHttpUrl
 {
 public:
-	explicit CHttpUrl(const std::string &url);
+	CHttpUrl(const std::string &url); // добавить обработку ip, добавить возможность ввода : в документе
 
 	CHttpUrl(
-		std::string const& domain,
-		std::string const& document,
-		Protocol protocol = Protocol::HTTP);
+		const std::string &domain,
+		const std::string &document,
+		Protocol protocol = Protocol::HTTP); // нечуствителен к регистру
 
 	CHttpUrl(
-		std::string const& domain,
-		std::string const& document,
-		unsigned short port,
+		const std::string &domain,
+		const std::string &document,
+		unsigned short port, // 1 - 65535
 		Protocol protocol = Protocol::HTTP);
 
 	std::string GetURL()const;

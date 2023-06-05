@@ -20,6 +20,7 @@ namespace
 	const char LENGTH_OF_PROTOCOL_SEPARATOR_SUBSTRING = 3;
 
 	const int MAX_PORT = 65535;
+	const int MIN_PORT = 1;
 
 	const std::map<Protocol, unsigned short> PROTOCOL_STANDART_PORTS = {
 		{Protocol::HTTP, 80},
@@ -29,11 +30,11 @@ namespace
 	const std::map<std::string, Protocol> PROTOCOL_TYPES = {
 		{"http", Protocol::HTTP},
 		{"https", Protocol::HTTPS},
-	};
+	}; // подходящее сообщение
 
 	void ValidatePort(int port)
 	{
-		if (port > MAX_PORT || port < 0)
+		if (port > MAX_PORT || port < MIN_PORT) // добавить тест
 		{
 			throw CUrlParsingError("invalid port");
 		}
@@ -123,39 +124,46 @@ CHttpUrl::CHttpUrl(const std::string &url)
 	unsigned int port = ParsePort(url, pos, protocol);
 	std::string document = ParseDocument(url, pos);
 
-	m_protocol = protocol;
 	swap(m_domain, domain);
-	m_port = port;
 	swap(m_document, document);
+	m_protocol = protocol;
+	m_port = port;
 }
 
 CHttpUrl::CHttpUrl(
-	std::string const& domain,
-	std::string const& document,
+	const std::string &domain,
+	const std::string &document,
 	Protocol protocol)
 {
 	ValidateDomain(domain);
 	ValidateDocument(document);
 
+	std::string domainCopy = domain;
+	std::string documentCopy = document;
+
+	swap(m_domain, domainCopy);
+	swap(m_document, documentCopy);
 	m_protocol = protocol;
-	m_domain = domain;
 	m_port = PROTOCOL_STANDART_PORTS.at(protocol);
-	m_document = document;
 }
 
 CHttpUrl::CHttpUrl(
-	std::string const& domain,
-	std::string const& document,
+	const std::string &domain,
+	const std::string &document,
 	unsigned short port,
 	Protocol protocol)
 {
 	ValidateDomain(domain);
 	ValidateDocument(document);
 
+	std::string domainCopy = domain;
+	std::string documentCopy = document;
+
+	swap(m_domain, domainCopy);
+	swap(m_document, documentCopy);
+
 	m_protocol = protocol;
-	m_domain = domain;
 	m_port = port;
-	m_document = document;
 }
 
 std::string CHttpUrl::GetURL()const

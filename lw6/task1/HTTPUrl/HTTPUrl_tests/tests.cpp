@@ -54,11 +54,6 @@ SCENARIO("creating url throught string")
 		REQUIRE(url.GetPort() == 8000);
 	}
 
-	GIVEN("Url with negative port")
-	{
-		REQUIRE_THROWS(CHttpUrl("https://www.youtube.com:-8000"));
-	}
-
 	GIVEN("Url with invalid protocol")
 	{
 		REQUIRE_THROWS(CHttpUrl("hps://www.youtube.com"));
@@ -67,6 +62,13 @@ SCENARIO("creating url throught string")
 	GIVEN("Url with invalid port")
 	{
 		REQUIRE_THROWS(CHttpUrl("https://www.youtube.com:abcd"));
+		REQUIRE_THROWS(CHttpUrl("https://www.youtube.com:-8000"));
+		REQUIRE_THROWS(CHttpUrl("https://www.youtube.com:9"));
+	}
+
+	GIVEN("Url with invalid query parameters")
+	{
+		REQUIRE_THROWS(CHttpUrl("https://www.youtube.com?page=="));
 	}
 }
 

@@ -138,6 +138,7 @@
     <ClInclude Include="CHttpUrl.h" />
     <ClInclude Include="CommandsController.h" />
     <ClInclude Include="CUrlParsingError.h" />
+    <ClInclude Include="StringUtils.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
