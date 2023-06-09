@@ -9,7 +9,7 @@ SCENARIO("creating url throught string")
 {
 	GIVEN("Url without authethication, query parameters, port")
 	{
-		auto url = CHttpUrl("http://youtube/page/1");
+		auto url = CHttpUrl("htTp://youtube/page/1");
 
 		REQUIRE(url.GetProtocol() == Protocol::HTTP);
 		REQUIRE(url.GetDomain() == "youtube");
@@ -28,7 +28,7 @@ SCENARIO("creating url throught string")
 
 	GIVEN("Url without authethication, query parameters")
 	{
-		auto url = CHttpUrl("http://www.youtube.com/page/1");
+		auto url = CHttpUrl("HTTP://www.youtube.com/page/1");
 
 		REQUIRE(url.GetProtocol() == Protocol::HTTP);
 		REQUIRE(url.GetDomain() == "www.youtube.com");
@@ -46,12 +46,36 @@ SCENARIO("creating url throught string")
 
 	GIVEN("Url")
 	{
-		auto url = CHttpUrl("https://login:password@www.youtube.com:8000/page/1?verified=true&download=");
+		auto url = CHttpUrl("https://login:password@www.youtube.com:65535/page/1?verified=true&download=");
 
 		REQUIRE(url.GetProtocol() == Protocol::HTTPS);
 		REQUIRE(url.GetDomain() == "login:password@www.youtube.com");
 		REQUIRE(url.GetDocument() == "page/1?verified=true&download=");
-		REQUIRE(url.GetPort() == 8000);
+		REQUIRE(url.GetPort() == 65535);
+	}
+
+	GIVEN("Url with api")
+	{
+		auto url = CHttpUrl("https://127.0.0.1");
+
+		REQUIRE(url.GetProtocol() == Protocol::HTTPS);
+		REQUIRE(url.GetDomain() == "127.0.0.1");
+
+		auto url1 = CHttpUrl("https://255.255.255.255");
+
+		REQUIRE(url1.GetProtocol() == Protocol::HTTPS);
+		REQUIRE(url1.GetDomain() == "255.255.255.255");
+
+		auto url2 = CHttpUrl("https://0.0.0.0");
+
+		REQUIRE(url2.GetProtocol() == Protocol::HTTPS);
+		REQUIRE(url2.GetDomain() == "0.0.0.0");
+
+		REQUIRE_THROWS(CHttpUrl("https://255.255.255"));
+		REQUIRE_THROWS(CHttpUrl("https://255.255.255.256"));
+		REQUIRE_THROWS(CHttpUrl("https://255.255.255.asw"));
+		REQUIRE_THROWS(CHttpUrl("https://255.255.255."));
+		REQUIRE_THROWS(CHttpUrl("https://-255.255.255.255"));
 	}
 
 	GIVEN("Url with invalid protocol")
@@ -63,7 +87,8 @@ SCENARIO("creating url throught string")
 	{
 		REQUIRE_THROWS(CHttpUrl("https://www.youtube.com:abcd"));
 		REQUIRE_THROWS(CHttpUrl("https://www.youtube.com:-8000"));
-		REQUIRE_THROWS(CHttpUrl("https://www.youtube.com:9"));
+		REQUIRE_THROWS(CHttpUrl("https://www.youtube.com:0"));
+		REQUIRE_THROWS(CHttpUrl("https://www.youtube.com:65536"));
 	}
 
 	GIVEN("Url with invalid query parameters")
@@ -91,5 +116,29 @@ SCENARIO("creating url throught parameters")
 		REQUIRE(url.GetProtocol() == Protocol::HTTPS);
 		REQUIRE(url.GetDomain() == "login:password@www.youtube.com");
 		REQUIRE(url.GetDocument() == "page/1?verified=true&download=true");
+	}
+
+	GIVEN("Url with api")
+	{
+		auto url = CHttpUrl("https://127.0.0.1");
+
+		REQUIRE(url.GetProtocol() == Protocol::HTTPS);
+		REQUIRE(url.GetDomain() == "127.0.0.1");
+
+		auto url1 = CHttpUrl("https://255.255.255.255");
+
+		REQUIRE(url1.GetProtocol() == Protocol::HTTPS);
+		REQUIRE(url1.GetDomain() == "255.255.255.255");
+
+		auto url2 = CHttpUrl("https://0.0.0.0");
+
+		REQUIRE(url2.GetProtocol() == Protocol::HTTPS);
+		REQUIRE(url2.GetDomain() == "0.0.0.0");
+
+		REQUIRE_THROWS(CHttpUrl("https://255.255.255"));
+		REQUIRE_THROWS(CHttpUrl("https://255.255.255.256"));
+		REQUIRE_THROWS(CHttpUrl("https://255.255.255.asw"));
+		REQUIRE_THROWS(CHttpUrl("https://255.255.255."));
+		REQUIRE_THROWS(CHttpUrl("https://-255.255.255.255"));
 	}
 }

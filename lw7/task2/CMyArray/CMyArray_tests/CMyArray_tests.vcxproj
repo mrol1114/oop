@@ -21,8 +21,8 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{4f8d0f86-654a-4fd5-8d83-b02eb5b8cc28}</ProjectGuid>
-    <RootNamespace>HTTPUrltests</RootNamespace>
+    <ProjectGuid>{ea520a61-9d28-440c-8658-03a0845e53f0}</ProjectGuid>
+    <RootNamespace>CMyArraytests</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -129,17 +129,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\HTTPUrl\CHttpUrl.cpp" />
-    <ClCompile Include="..\HTTPUrl\CommandsController.cpp" />
-    <ClCompile Include="..\HTTPUrl\CUrlParsingError.cpp" />
-    <ClCompile Include="..\HTTPUrl\StringUtils.cpp" />
+    <ClCompile Include="..\CMyArray\CMyArray.cpp" />
     <ClCompile Include="tests.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\HTTPUrl\CHttpUrl.h" />
-    <ClInclude Include="..\HTTPUrl\CommandsController.h" />
-    <ClInclude Include="..\HTTPUrl\CUrlParsingError.h" />
-    <ClInclude Include="..\HTTPUrl\StringUtils.h" />
+    <ClInclude Include="..\CMyArray\CMyArray.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

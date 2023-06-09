@@ -2,7 +2,4 @@
 
 #include <string>
 
-const std::string StringToLowerCopy(const std::string)
-{
-
-}
+std::string StringToLowerCaseCopy(const std::string& str);

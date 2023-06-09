@@ -18,11 +18,14 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="CMyList.h" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{4f8d0f86-654a-4fd5-8d83-b02eb5b8cc28}</ProjectGuid>
-    <RootNamespace>HTTPUrltests</RootNamespace>
+    <ProjectGuid>{620646c4-7b87-47c9-a6ce-efc0cf009486}</ProjectGuid>
+    <RootNamespace>CMyList</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -76,7 +79,6 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -105,7 +107,6 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -128,19 +129,6 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <ClCompile Include="..\HTTPUrl\CHttpUrl.cpp" />
-    <ClCompile Include="..\HTTPUrl\CommandsController.cpp" />
-    <ClCompile Include="..\HTTPUrl\CUrlParsingError.cpp" />
-    <ClCompile Include="..\HTTPUrl\StringUtils.cpp" />
-    <ClCompile Include="tests.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="..\HTTPUrl\CHttpUrl.h" />
-    <ClInclude Include="..\HTTPUrl\CommandsController.h" />
-    <ClInclude Include="..\HTTPUrl\CUrlParsingError.h" />
-    <ClInclude Include="..\HTTPUrl\StringUtils.h" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

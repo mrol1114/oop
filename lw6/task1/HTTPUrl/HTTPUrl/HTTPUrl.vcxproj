@@ -133,6 +133,7 @@
     <ClCompile Include="CommandsController.cpp" />
     <ClCompile Include="CUrlParsingError.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="StringUtils.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CHttpUrl.h" />

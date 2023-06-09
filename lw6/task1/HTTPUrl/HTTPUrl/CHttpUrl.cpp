@@ -3,24 +3,33 @@
 
 #include "CHttpUrl.h"
 #include "CUrlParsingError.h"
+#include "StringUtils.h"
 
 namespace
 {
-	const std::regex REGEX_FOR_URL(R"(https?:\/\/)"
-		R"((([^\/:.]+)?:([^\/:.]+)?@)?([a-zA-Z]+\.)?([a-zA-Z0-9]+)(\.[\w]{2,})?(:[\d]*)?)"
-		R"((\/([a-zA-Z0-9]+\/)*([a-zA-Z0-9]+)?)?(\?(([a-zA-Z0-9]+=[a-zA-Z0-9]*)+&?)*)?$)");
+	const std::regex REGEX_FOR_URL(R"((https?):\/\/)"
+		R"(((([^\/:.]+)?:([^\/:.]+)?@)?([a-zA-Z]+\.)?([a-zA-Z0-9]+)(\.[\w]{2,})?|(([\d]{1,3}\.){3}[\d]{1,3}))(:([\d]*))?)"
+		R"((\/((([a-zA-Z0-9:]+\/)*([a-zA-Z0-9:]+)?)?(\?(([a-zA-Z0-9:]+=[a-zA-Z0-9:]*)+&?)*)?))?$)", std::regex_constants::icase);
 	const std::regex REGEX_FOR_DOMAIN(R"(((([^\/:.]+)?:([^\/:.]+)?@)?([a-zA-Z]+\.))"
-		R"(?([a-zA-Z0-9]+)(\.[\w]{2,})?)|(([\d]{1,3}.){3}[\d]{1,3})$)");
-	const std::regex REGEX_FOR_DOCUMENT(R"((\/?([a-zA-Z0-9]+\/)*([a-zA-Z0-9]+)?)?)"
-		R"((\?(([a-zA-Z0-9]+=[a-zA-Z0-9]*)+&?)*)?$)");
+		R"(?([a-zA-Z0-9]+)(\.[\w]{2,})?)|(([\d]{1,3}\.){3}[\d]{1,3})$)");
+	const std::regex REGEX_FOR_DOMAIN_API(R"(([\d]{1,3})\.([\d]{1,3})\.([\d]{1,3})\.([\d]{1,3})$)");
+	const std::regex REGEX_FOR_DOCUMENT(R"((\/?([a-zA-Z0-9:]+\/)*([a-zA-Z0-9:]+)?)?)"
+		R"((\?(([a-zA-Z0-9:]+=[a-zA-Z0-9:]*)+&?)*)?$)");
 
 	const char PATH_SEPARATOR = '/';
 	const char PROTOCOL_SEPARATOR = ':';
 	const char AUTHORIZATION_SEPARATOR = '@';
-	const char LENGTH_OF_PROTOCOL_SEPARATOR_SUBSTRING = 3;
 
+	const int LENGTH_OF_PROTOCOL_SEPARATOR_SUBSTRING = 3;
+	const int NUMBER_OF_PARTS_IN_API_DOMAIN = 4;
+	const int MAX_API_DOMAIN_PART_VALUE = 255;
 	const int MAX_PORT = 65535;
 	const int MIN_PORT = 1;
+
+	const short int INDEX_OF_PROTOCOL_GROUP = 1;
+	const short int INDEX_OF_DOMAIN_GROUP = 2;
+	const short int INDEX_OF_PORT_GROUP = 12;
+	const short int INDEX_OF_DOCUMENT_GROUP = 14;
 
 	const std::map<Protocol, unsigned short> PROTOCOL_STANDART_PORTS = {
 		{Protocol::HTTP, 80},
@@ -36,15 +45,29 @@ namespace
 	{
 		if (port > MAX_PORT || port < MIN_PORT) // добавить тест
 		{
-			throw CUrlParsingError("invalid port");
+			throw CUrlParsingError("wrong port");
 		}
 	}
 
 	void ValidateDomain(const std::string& domain)
 	{
+		std::smatch match;
+
 		if (!std::regex_match(domain, REGEX_FOR_DOMAIN))
 		{
 			throw CUrlParsingError("invalid domain");
+		}
+		else if (std::regex_search(domain, match, REGEX_FOR_DOMAIN_API))
+		{
+			for (int i = 1; i <= NUMBER_OF_PARTS_IN_API_DOMAIN; i++)
+			{
+				int partOfDomainApi = std::stoi(match[i].str());
+
+				if (partOfDomainApi > MAX_API_DOMAIN_PART_VALUE)
+				{
+					throw CUrlParsingError("value in domain exceed maximum(255)");
+				}
+			}
 		}
 	}
 
@@ -56,73 +79,42 @@ namespace
 		}
 	}
 
-	Protocol ParseProtocol(const std::string& url, size_t& pos)
+	unsigned short ParsePort(const std::string &portStr, Protocol protocol)
 	{
-		size_t endOfProtocolPos = url.find(PROTOCOL_SEPARATOR);
-		pos = endOfProtocolPos + LENGTH_OF_PROTOCOL_SEPARATOR_SUBSTRING;
-
-		return PROTOCOL_TYPES.at(url.substr(0, endOfProtocolPos));
-	}
-
-	std::string ParseDomain(const std::string& url, size_t& pos)
-	{
-		size_t prevPos = pos;
-
-		size_t endOfAuthorizationPos = url.find(AUTHORIZATION_SEPARATOR, prevPos);
-		size_t startOfPortPos = url.find(PROTOCOL_SEPARATOR,
-			endOfAuthorizationPos != std::string::npos ? endOfAuthorizationPos + 1 : pos);
-		
-		if (startOfPortPos != std::string::npos)
-		{
-			pos = startOfPortPos;
-			return url.substr(prevPos, startOfPortPos - prevPos);
-		}
-		
-		pos = url.find(PATH_SEPARATOR, prevPos);
-		if (pos == std::string::npos)
-		{
-			return url.substr(prevPos);
-		}
-
-		return url.substr(prevPos, pos - prevPos);
-	}
-
-	unsigned short ParsePort(const std::string& url, size_t& pos, Protocol protocol)
-	{
-		size_t startOfPortPos = url.find(PROTOCOL_SEPARATOR, pos);
-		pos = url.find(PATH_SEPARATOR, pos);
-
-		if (startOfPortPos != std::string::npos)
-		{
-			int port = stoi(url.substr(startOfPortPos + 1, pos - startOfPortPos));
-			ValidatePort(port);
-
-			return static_cast<unsigned short>(port);
-		}
-		else
+		if (portStr == "")
 		{
 			return PROTOCOL_STANDART_PORTS.at(protocol);
 		}
-	}
-	
-	std::string ParseDocument(const std::string& url, size_t& pos)
-	{
-		return pos != std::string::npos ? url.substr(pos + 1) : "";
+
+		unsigned short port;
+		try
+		{
+			port = static_cast<unsigned short>(stoi(portStr));
+		}
+		catch (const std::exception &ex)
+		{
+			throw CUrlParsingError("invalid port");
+		}
+
+		ValidatePort(port);
+
+		return port;
 	}
 }
 
 CHttpUrl::CHttpUrl(const std::string &url)
 {
-	if (!std::regex_match(url, REGEX_FOR_URL))
+	std::smatch match;
+	if (!std::regex_search(url, match, REGEX_FOR_URL))
 	{
 		throw CUrlParsingError("invalid url");
 	}
-
-	size_t pos = 0;
-	Protocol protocol = ParseProtocol(url, pos);
-	std::string domain = ParseDomain(url, pos);
-	unsigned int port = ParsePort(url, pos, protocol);
-	std::string document = ParseDocument(url, pos);
+	ValidateDomain(match[INDEX_OF_DOMAIN_GROUP].str());
+	
+	Protocol protocol = PROTOCOL_TYPES.at(StringToLowerCaseCopy(match[INDEX_OF_PROTOCOL_GROUP].str()));
+	std::string domain = match[INDEX_OF_DOMAIN_GROUP].str();
+	unsigned short port = ParsePort(match[INDEX_OF_PORT_GROUP].str(), protocol);
+	std::string document = match[INDEX_OF_DOCUMENT_GROUP].str();
 
 	swap(m_domain, domain);
 	swap(m_document, document);
