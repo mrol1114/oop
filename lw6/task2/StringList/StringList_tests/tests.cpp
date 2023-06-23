@@ -1,0 +1,175 @@
+#include <iostream>
+#include <sstream>
+#include <vector>
+#define CATCH_CONFIG_MAIN
+#include "../../../../libs/catch2/catch.hpp"
+
+#include "../StringList/CStringList.h"
+
+SCENARIO("initializing list")
+{
+	CStringList baseList;
+	baseList.PushBack("123");
+	baseList.PushBack("456");
+	baseList.PushBack("789");
+
+	GIVEN("testing copy operator")
+	{
+		CStringList list;
+
+		list.PushBack("123");
+
+		REQUIRE(list.GetBackElement() == "123");
+	}
+
+	GIVEN("testing move operator")
+	{
+		CStringList list = baseList;
+
+		REQUIRE(list.GetBackElement() == "789");
+	}
+}
+
+SCENARIO("testing iterators")
+{
+	CStringList baseList;
+	baseList.PushBack("123");
+	baseList.PushBack("456");
+	baseList.PushBack("789");
+
+	WHEN("testing begin")
+	{
+		auto it = baseList.begin();
+
+		REQUIRE(*it == "123");
+	}
+
+	WHEN("testing ++")
+	{
+		auto it = baseList.begin();
+		std::ostringstream expected("123456789");
+		std::ostringstream get;
+
+		for (; it != baseList.end(); it++)
+		{
+			get << *it;
+		}
+
+		REQUIRE(get.str() == expected.str());
+	}
+
+	WHEN("testing --")
+	{
+		auto it = baseList.begin();
+
+		it++;
+		REQUIRE(*it == "456");
+
+		it--;
+		REQUIRE(*it == "123");
+	}
+
+	WHEN("testing range-based for")
+	{
+		auto it = baseList.begin();
+		std::ostringstream expected("123456789");
+		std::ostringstream get;
+
+		for (std::string& value: baseList)
+		{
+			get << value;
+		}
+
+		REQUIRE(get.str() == expected.str());
+	}
+
+	WHEN("testing Erase")
+	{
+		CStringList list = baseList;
+
+		auto it = list.begin();
+
+		it++;
+		it = list.Erase(it);
+		REQUIRE(*it == "789");
+		REQUIRE(list.GetSize() == 2);
+
+		it = list.Erase(it);
+		REQUIRE(list.GetSize() == 1);
+		REQUIRE(list.GetBackElement() == "123");
+
+		REQUIRE_THROWS(list.Erase(it));
+	}
+
+	WHEN("testing Insert")
+	{
+		CStringList list = baseList;
+		std::ostringstream expected("abcqwerty123456789dc");
+		std::ostringstream get;
+
+		auto it = list.begin();
+		list.Insert(it, "abc");
+
+		it++;
+		list.Insert(it, "qwerty");
+
+		auto end = list.end();
+		REQUIRE_THROWS(list.Insert(end, "dc"));
+	}
+}
+
+SCENARIO("testing const iterators")
+{
+	CStringList base;
+	base.PushBack("123");
+	base.PushBack("456");
+	base.PushBack("789");
+
+	const CStringList baseList = base;
+
+	WHEN("testing begin")
+	{
+		auto it = baseList.cbegin();
+
+		REQUIRE(*it == "123");
+	}
+
+	WHEN("testing ++")
+	{
+		auto it = baseList.cbegin();
+		std::ostringstream expected("123456789");
+		std::ostringstream get;
+
+		for (; it != baseList.cend(); it++)
+		{
+			get << *it;
+		}
+
+		REQUIRE(get.str() == expected.str());
+	}
+
+	WHEN("testing --")
+	{
+		auto it = baseList.cbegin();
+
+		it++;
+		REQUIRE(*it == "456");
+
+		it--;
+		REQUIRE(*it == "123");
+	}
+
+	WHEN("testing range-based for")
+	{
+		auto it = baseList.cbegin();
+		std::ostringstream expected("123456789");
+		std::ostringstream get;
+
+		for (const std::string& value : baseList)
+		{
+			get << value;
+		}
+
+		REQUIRE(get.str() == expected.str());
+	}
+}

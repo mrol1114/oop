@@ -12,6 +12,14 @@ struct Sportsmen
 	int height = 0;
 };
 
+SCENARIO("testing default function less")
+{
+	int maxElement;
+	std::vector<int> arr = {1, 34 , 56, 1};
+	FindMax(arr, maxElement);
+	REQUIRE(FindMax(arr, maxElement));
+}
+
 SCENARIO("find sportsmen with max weight")
 {
 	auto findMax = [&](const Sportsmen& first, const Sportsmen& second)

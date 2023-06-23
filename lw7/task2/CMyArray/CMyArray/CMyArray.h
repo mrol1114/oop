@@ -1,13 +1,90 @@
 #pragma once
 
 #include <iostream>
+#include <iterator>
 
 template <class T>
 class CMyArray
 {
-public:
-	class Iterator;
+	template <bool IsConst>
+	class IteratorBase
+	{
+		friend class IteratorBase<true>;
+	public:
+		using MyType = IteratorBase< IsConst>;
+		using value_type = std::conditional_t<IsConst, const T, T>;
+		using reference = value_type&;
+		using pointer = value_type*;
+		using difference_type = ptrdiff_t;
+		using iterator_category = std::random_access_iterator_tag;
 
+		IteratorBase() = default;
+		IteratorBase(const IteratorBase<false>& other)
+			: m_item(other.m_item)
+		{
+		}
+
+		reference& operator*() const
+		{
+			return *m_item;
+		}
+
+		MyType& operator++()
+		{
+			m_item++;
+			return *this;
+		}
+
+		MyType& operator--()
+		{
+			m_item--;
+			return *this;
+		}
+
+		MyType& operator++(int)
+		{
+			m_item++;
+			return *this;
+		}
+
+		MyType& operator+=(difference_type offset)
+		{
+			m_item += offset;
+			return *this;
+		}
+
+		MyType operator+(difference_type offset) const
+		{
+			MyType self(m_item);
+			return self += offset;
+		}
+
+		bool operator==(const MyType& other) const
+		{
+			return m_item == other.m_item;
+		}
+
+		bool operator!=(const MyType& other) const
+		{
+			return !(m_item == other.m_item);
+		}
+
+		friend MyType operator+(difference_type offset, const MyType& it)
+		{
+			return it + offset;
+		}
+
+	public:
+		IteratorBase(T* item)
+			: m_item(item)
+		{
+		}
+
+	protected:
+		T* m_item = nullptr;
+	};
+
+public:
 	CMyArray() = default;
 
 	CMyArray(const CMyArray& arr)
@@ -15,7 +92,7 @@ public:
 		CopyArrayValues(arr);
 	}
 
-	CMyArray(CMyArray&& arr)
+	CMyArray(CMyArray&& arr)noexcept
 	{
 		m_begin = arr.m_begin;
 		m_end = arr.m_end;
@@ -152,26 +229,6 @@ public:
 		}
 	}
 
-	Iterator begin()
-	{
-		return m_begin;
-	}
-
-	Iterator end()
-	{
-		return m_end;
-	}
-
-	Iterator rbegin()
-	{
-		end();
-	}
-
-	Iterator rend()
-	{
-		begin();
-	}
-
 	CMyArray& operator=(const CMyArray& arr)
 	{
 		if (this != &arr)
@@ -198,26 +255,68 @@ public:
 		return *this;
 	}
 
-	class Iterator
+	using iterator = IteratorBase<false>;
+	using const_iterator = IteratorBase<true>;
+
+	iterator begin()
 	{
-	public:
-		Iterator(T* first) : m_curr(first) {}
+		return { m_begin };
+	}
 
-		T& operator+(int num) { return *(m_curr + num); }
-		T& operator-(int num) { return *(m_curr - num); }
+	iterator end()
+	{
+		return { m_end };
+	}
 
-		T& operator++(int) { return *(m_curr++); }
-		T& operator--(int) { return *(m_curr--); }
-		T& operator++() { return *(++m_curr); }
-		T& operator--() { return *(--m_curr); }
+	std::reverse_iterator<iterator> rbegin()
+	{
+		return std::make_reverse_iterator(this->end());
+	}
 
-		bool operator!=(const Iterator& it) { return m_curr != it.m_curr; }
-		bool operator==(const Iterator& it) { return m_curr == it.m_curr; }
+	std::reverse_iterator<iterator> rend()
+	{
+		return std::make_reverse_iterator(this->begin());
+	}
 
-		T& operator*() { return *m_curr; }
-	private:
-		T* m_curr;
-	};
+	const_iterator begin() const
+	{
+		return { m_begin };
+	}
+
+	const_iterator end() const
+	{
+		return { m_end };
+	}
+
+	std::reverse_iterator<const_iterator> rbegin() const
+	{
+		return std::make_reverse_iterator(this->cend());
+	}
+
+	std::reverse_iterator<const_iterator> rend() const
+	{
+		return std::make_reverse_iterator(this->cbegin());
+	}
+
+	const_iterator cbegin() const
+	{
+		return { m_begin };
+	}
+
+	const_iterator cend() const
+	{
+		return { m_end };
+	}
+
+	std::reverse_iterator<const_iterator> crbegin() const
+	{
+		return std::make_reverse_iterator(this->cend());
+	}
+
+	std::reverse_iterator<const_iterator> crend() const
+	{
+		return std::make_reverse_iterator(this->cbegin());
+	}
 
 private:
 
@@ -238,17 +337,6 @@ private:
 				throw;
 			}
 		}
-	}
-
-	void MoveArrayValues(CMyArray&& arr)
-	{
-		m_begin = arr.m_begin;
-		m_end = arr.m_end;
-		m_endOfCapacity = arr.m_endOfCapacity;
-
-		arr.m_begin = nullptr;
-		arr.m_end = nullptr;
-		arr.m_endOfCapacity = nullptr;
 	}
 
 	size_t GetNewCapacityValue()

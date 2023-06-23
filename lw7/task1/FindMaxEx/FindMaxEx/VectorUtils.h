@@ -2,8 +2,14 @@
 
 #include <vector>
 
+template <typename T>
+bool DefaultLess(const T& first, const T& second)
+{
+	return first < second;
+}
+
 template <typename T, typename Less>
-bool FindMax(std::vector<T> const& arr, T& maxValue, Less const& less)
+bool FindMax(std::vector<T> const& arr, T& maxValue, Less const& less = DefaultLess)
 {
 	if (arr.size() == 0)
 	{
@@ -11,7 +17,7 @@ bool FindMax(std::vector<T> const& arr, T& maxValue, Less const& less)
 	}
 
 	T currMax = arr[0];
-	for (T const& currValue : arr)
+	for (T const& currValue: arr)
 	{
 		if (less(currMax, currValue))
 		{
