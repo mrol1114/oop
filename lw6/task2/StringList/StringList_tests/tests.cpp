@@ -104,7 +104,7 @@ SCENARIO("testing iterators")
 	WHEN("testing Insert")
 	{
 		CStringList list = baseList;
-		std::ostringstream expected("abcqwerty123456789dc");
+		std::ostringstream expected("abc123qwerty456789");
 		std::ostringstream get;
 
 		auto it = list.begin();
@@ -115,6 +115,12 @@ SCENARIO("testing iterators")
 
 		auto end = list.end();
 		REQUIRE_THROWS(list.Insert(end, "dc"));
+
+		for (const std::string& value : list)
+		{
+			get << value;
+		}
+		REQUIRE(expected.str() == get.str());
 	}
 }
 
@@ -171,5 +177,18 @@ SCENARIO("testing const iterators")
 		}
 
 		REQUIRE(get.str() == expected.str());
+	}
+
+	WHEN("testing reverse range-based for")
+	{
+		std::vector<std::string> expected;
+		//for (auto i = baseList.rbegin(); i != baseList.rend(); i++)
+		//{
+		//	expected.push_back(*i);
+		//}
+
+		//REQUIRE(expected[0] == "789");
+		//REQUIRE(expected[1] == "456");
+		//REQUIRE(expected[2] == "123");
 	}
 }

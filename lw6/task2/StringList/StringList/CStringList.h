@@ -17,6 +17,80 @@ class CStringList
 		Node* prev;
 		std::unique_ptr<Node> next;
 	};
+
+	template <bool IsConst>
+	class IteratorBase
+	{
+		friend class IteratorBase<true>;
+		friend class CStringList;
+	public:
+		using MyType = IteratorBase< IsConst>;
+		using value_type = std::conditional_t<IsConst, const std::string, std::string>;
+		using reference = value_type&;
+		using pointer = value_type*;
+		using difference_type = ptrdiff_t;
+		using iterator_category = std::bidirectional_iterator_tag;
+
+		IteratorBase() = default;
+		IteratorBase(const IteratorBase<false>& other)
+			: m_node(other.m_node)
+		{
+		}
+
+		reference& operator*() const
+		{
+			return m_node->data;
+		}
+
+		MyType& operator++()
+		{
+			m_node = m_node->next.get();
+			return *this;
+		}
+
+		MyType& operator++(int)
+		{
+			m_node = m_node->next.get();
+			return *this;
+		}
+
+		MyType& operator--()
+		{
+			m_node = m_node->prev;
+			return *this;
+		}
+
+		MyType& operator--(int)
+		{
+			m_node = m_node->prev;
+			return *this;
+		}
+
+		bool operator==(const MyType& other)const
+		{
+			return m_node == other.m_node;
+		}
+
+		bool operator!=(const MyType& other)const
+		{
+			return !(m_node == other.m_node);
+		}
+
+		friend MyType operator+(difference_type offset, const MyType& it)
+		{
+			return it + offset;
+		}
+		
+	public:
+		IteratorBase(Node* item)
+			: m_node(item)
+		{
+		}
+
+	protected:
+		Node* m_node = nullptr;
+	};
+
 public:
 
 	CStringList() = default;
@@ -35,63 +109,27 @@ public:
 
 	CStringList& operator =(const CStringList& other);
 	CStringList& operator =(CStringList&& other);
-	
-	class BaseIterator
-	{
-		friend CStringList;
-		BaseIterator(Node* node);
 
-	public:
-		using iterator_category = std::bidirectional_iterator_tag;
+	using iterator = IteratorBase<false>;
+	using const_iterator = IteratorBase<true>;
 
-		BaseIterator() = default;
-		bool operator==(const BaseIterator& other)const;
-		bool operator!=(const BaseIterator& other)const;
+	iterator Erase(iterator& it);
+	iterator Insert(iterator& it, const std::string& value);
 
-	private:
-		Node* m_node = nullptr;
-	};
+	iterator begin();
+	iterator end();
+	const_iterator begin()const;
+	const_iterator end()const;
 
-	class Iterator: public BaseIterator
-	{
-		friend CStringList;
-		Iterator(Node* node);
+	std::reverse_iterator<iterator> rbegin();
+	std::reverse_iterator<iterator> rend();
+	std::reverse_iterator<const_iterator> rbegin()const;
+	std::reverse_iterator<const_iterator> rend()const;
 
-	public:
-		Iterator& operator++(int);
-		Iterator& operator++();
-		Iterator& operator--(int);
-		std::string& operator*()const;
-	};
-
-	class ConstIterator: public BaseIterator
-	{
-		friend CStringList;
-		ConstIterator(Node* node);
-
-	public:
-		ConstIterator& operator++(int);
-		ConstIterator& operator++();
-		ConstIterator& operator--(int);
-		const std::string& operator*()const;
-	};
-
-	Iterator Erase(Iterator& it);
-	Iterator Insert(Iterator& it, const std::string& value);
-
-	Iterator begin();
-	Iterator end();
-	ConstIterator begin()const;
-	ConstIterator end()const;
-
-	//std::reverse_iterator<Iterator> rbegin();
-	//std::reverse_iterator<Iterator> rend();
-
-	ConstIterator cbegin()const;
-	ConstIterator cend()const;
-
-	//std::reverse_iterator<ConstIterator> crbegin()const;
-	//std::reverse_iterator<ConstIterator> crend()const;
+	const_iterator cbegin()const;
+	const_iterator cend()const;
+	std::reverse_iterator<const_iterator> crbegin()const;
+	std::reverse_iterator<const_iterator> crend()const;
 
 private:
 	void DeleteItems(std::unique_ptr<Node>& firstNode);
