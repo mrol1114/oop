@@ -108,7 +108,7 @@ public:
 	std::string const& GetBackElement()const;
 
 	CStringList& operator =(const CStringList& other);
-	CStringList& operator =(CStringList&& other);
+	CStringList& operator =(CStringList&& other)noexcept;
 
 	using iterator = IteratorBase<false>;
 	using const_iterator = IteratorBase<true>;

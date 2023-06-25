@@ -15,18 +15,21 @@ SCENARIO("initializing list")
 
 	GIVEN("testing copy operator")
 	{
-		CStringList list;
+		CStringList list = baseList;
 
-		list.PushBack("123");
-
-		REQUIRE(list.GetBackElement() == "123");
+		REQUIRE(list.GetBackElement() == "789");
+		REQUIRE(list.GetSize() == 3);
 	}
 
 	GIVEN("testing move operator")
 	{
-		CStringList list = baseList;
+		CStringList list1 = baseList;
+		CStringList list2 = std::move(list1);
 
-		REQUIRE(list.GetBackElement() == "789");
+		REQUIRE(list2.GetBackElement() == "789");
+		REQUIRE(list2.GetSize() == 3);
+		REQUIRE_THROWS(list1.GetBackElement());
+		REQUIRE(list1.GetSize() == 0);
 	}
 }
 
@@ -93,6 +96,7 @@ SCENARIO("testing iterators")
 		it = list.Erase(it);
 		REQUIRE(*it == "789");
 		REQUIRE(list.GetSize() == 2);
+		REQUIRE(list.GetBackElement() == "789");
 
 		it = list.Erase(it);
 		REQUIRE(list.GetSize() == 1);
@@ -104,7 +108,7 @@ SCENARIO("testing iterators")
 	WHEN("testing Insert")
 	{
 		CStringList list = baseList;
-		std::ostringstream expected("abc123qwerty456789");
+		std::ostringstream expected("abc123qwerty456789dc");
 		std::ostringstream get;
 
 		auto it = list.begin();
@@ -114,7 +118,7 @@ SCENARIO("testing iterators")
 		list.Insert(it, "qwerty");
 
 		auto end = list.end();
-		REQUIRE_THROWS(list.Insert(end, "dc"));
+		list.Insert(end, "dc");
 
 		for (const std::string& value : list)
 		{
@@ -182,13 +186,13 @@ SCENARIO("testing const iterators")
 	WHEN("testing reverse range-based for")
 	{
 		std::vector<std::string> expected;
-		//for (auto i = baseList.rbegin(); i != baseList.rend(); i++)
-		//{
-		//	expected.push_back(*i);
-		//}
+		for (auto i = baseList.rbegin(); i != baseList.rend(); i++)
+		{
+			expected.push_back(*i);
+		}
 
-		//REQUIRE(expected[0] == "789");
-		//REQUIRE(expected[1] == "456");
-		//REQUIRE(expected[2] == "123");
+		REQUIRE(expected[0] == "789");
+		REQUIRE(expected[1] == "456");
+		REQUIRE(expected[2] == "123");
 	}
 }

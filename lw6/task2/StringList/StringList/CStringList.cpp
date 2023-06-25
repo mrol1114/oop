@@ -41,6 +41,7 @@ bool CStringList::Empty()const
 void CStringList::PushBack(const std::string& data)
 {
 	auto newNode = make_unique<Node>(data, m_lastNode, nullptr);
+	auto newEnd = make_unique<Node>("", nullptr, nullptr);
 	Node* newLastNode = newNode.get();
 
 	if (m_lastNode)
@@ -52,6 +53,8 @@ void CStringList::PushBack(const std::string& data)
 		m_firstNode = move(newNode);
 	}
 	m_lastNode = newLastNode;
+	newEnd->prev = m_lastNode;
+	m_lastNode->next = move(newEnd);
 
 	++m_size;
 }
@@ -59,9 +62,17 @@ void CStringList::PushBack(const std::string& data)
 void CStringList::PushFront(const std::string& data)
 {
 	auto newNode = make_unique<Node>(data, nullptr, nullptr);
+	auto newEnd = make_unique<Node>("", nullptr, nullptr);
 
 	if (m_firstNode)
 	{
+		if (m_firstNode.get() == m_lastNode)
+		{
+			m_lastNode = m_firstNode.get();
+			newEnd->prev = m_lastNode;
+			m_lastNode->next = move(newEnd);
+		}
+		
 		swap(m_firstNode, newNode);
 		m_firstNode->next = move(newNode);
 	}
@@ -69,6 +80,8 @@ void CStringList::PushFront(const std::string& data)
 	{
 		m_firstNode = move(newNode);
 		m_lastNode = m_firstNode.get();
+		newEnd->prev = m_lastNode;
+		m_lastNode->next = move(newEnd);
 	}
 
 	++m_size;
@@ -92,7 +105,7 @@ CStringList& CStringList::operator =(const CStringList& other)
 	return *this;
 }
 
-CStringList& CStringList::operator =(CStringList&& other)
+CStringList& CStringList::operator =(CStringList&& other)noexcept
 {
 	return *this = other;
 }
@@ -141,7 +154,7 @@ void CStringList::CopyItems(const std::unique_ptr<Node>& fromFirstNode, Node* fr
 	}
 
 	toFirstNode = move(newFirstNode);
-	toLastNode = newLastNode;
+	toLastNode = newLastNode->prev;
 }
 
 void CStringList::DeleteItems(std::unique_ptr<Node>& node)
@@ -159,7 +172,7 @@ void CStringList::DeleteItems(std::unique_ptr<Node>& node)
 
 CStringList::iterator CStringList::Erase(CStringList::iterator& it)
 {
-	if (it.m_node)
+	if (it.m_node && it.m_node->next != nullptr)
 	{
 		Node* prev = it.m_node->prev;
 		Node* next = it.m_node->next.get();
@@ -174,7 +187,7 @@ CStringList::iterator CStringList::Erase(CStringList::iterator& it)
 		}
 
 		it.m_node = nullptr;
-		if (next)
+		if (next->next != nullptr)
 		{
 			it.m_node = next;
 			it.m_node->prev = prev;
